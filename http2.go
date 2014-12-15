@@ -32,6 +32,21 @@ func RecoverHandler(fn http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+type Recover struct {
+	Handler http.Handler
+}
+
+func (r Recover) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("%s error %s\n", req.URL.Path, err)
+			http.Error(w, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+			return
+		}
+	}()
+	r.Handler.ServeHTTP(w, req)
+}
+
 type Response map[string]interface{}
 
 func (r Response) String() (s string) {
